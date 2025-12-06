@@ -158,13 +158,16 @@ struct StreamSources: View {
     }
     
     /// Start playlist playback from the first video.
+    ///
+    /// This function closes the playlist popover and the main window when playback starts
+    /// (inherited from `playVideo()`).
     func playPlaylist() {
         guard let firstStream = appState.playlist.start() else {
             return
         }
         appState.playlist.isLoopEnabled = true
         let streamToPlay = appState.applyFormatOptions(to: firstStream)
-        appState.selectedStream = firstStream
+        appState.selectedStream = streamToPlay
         playVideo(streamToPlay)
     }
     

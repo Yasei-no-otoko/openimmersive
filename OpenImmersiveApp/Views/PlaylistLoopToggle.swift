@@ -17,6 +17,7 @@ struct PlaylistLoopToggle: View {
     
     var body: some View {
         Toggle("", systemImage: "repeat", isOn: $isOn)
+            .accessibilityLabel("Loop playlist")
             .toggleStyle(.button)
             .controlSize(.extraLarge)
             .tint(isOn ? .accentColor : .clear)

@@ -49,14 +49,20 @@ struct PlaylistView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
             } else {
+                let streams = appState.playlist.streams
+                let totalCount = streams.count
                 List {
-                    ForEach(Array(appState.playlist.streams.enumerated()), id: \.element.id) { index, stream in
+                    ForEach(Array(streams.enumerated()), id: \.element.id) { index, stream in
                         PlaylistItemRow(
                             stream: stream,
                             index: index,
+                            totalCount: totalCount,
                             isCurrentItem: index == appState.playlist.currentIndex,
-                            onRemove: {
-                                appState.playlist.remove(at: index)
+                            onRemove: { [stream] in
+                                // Find the current index of the stream by URL to handle reordering
+                                if let currentIndex = appState.playlist.streams.firstIndex(where: { $0.url == stream.url }) {
+                                    appState.playlist.remove(at: currentIndex)
+                                }
                             }
                         )
                     }
@@ -94,6 +100,7 @@ struct PlaylistView: View {
 struct PlaylistItemRow: View {
     let stream: StreamModel
     let index: Int
+    let totalCount: Int
     let isCurrentItem: Bool
     let onRemove: () -> Void
     
@@ -135,6 +142,7 @@ struct PlaylistItemRow: View {
             .help("Remove from playlist")
         }
         .padding(.vertical, 4)
+        .accessibilityLabel("Video \(index + 1) of \(totalCount): \(stream.title)")
     }
 }
 

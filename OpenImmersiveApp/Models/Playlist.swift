@@ -9,6 +9,7 @@ import Foundation
 import OpenImmersive
 
 /// A model representing a playlist of video streams with looping capability.
+@MainActor
 @Observable
 class Playlist {
     /// The list of streams in the playlist.
@@ -82,10 +83,19 @@ class Playlist {
     }
     
     /// Sets the playlist from an array of streams.
-    /// - Parameter newStreams: The new array of streams.
-    func setStreams(_ newStreams: [StreamModel]) {
+    /// - Parameters:
+    ///   - newStreams: The new array of streams.
+    ///   - preserveCurrent: If true, attempts to preserve the current stream's position in the new array.
+    ///     If false (default), resets the current index to the start (or -1 if empty).
+    func setStreams(_ newStreams: [StreamModel], preserveCurrent: Bool = false) {
+        let previousStream = currentStream
         streams = newStreams
-        currentIndex = newStreams.isEmpty ? -1 : 0
+        if preserveCurrent, let previous = previousStream,
+           let newIndex = newStreams.firstIndex(where: { $0.url == previous.url }) {
+            currentIndex = newIndex
+        } else {
+            currentIndex = newStreams.isEmpty ? -1 : 0
+        }
     }
     
     /// Starts playback from the beginning of the playlist.

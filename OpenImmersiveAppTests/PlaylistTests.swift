@@ -284,6 +284,41 @@ final class PlaylistTests: XCTestCase {
         XCTAssertEqual(playlist.currentIndex, -1)
     }
     
+    func testSetStreamsPreserveCurrent() {
+        let stream1 = createTestStream(title: "Test Video 1", urlString: "https://example.com/1.m3u8")
+        let stream2 = createTestStream(title: "Test Video 2", urlString: "https://example.com/2.m3u8")
+        let stream3 = createTestStream(title: "Test Video 3", urlString: "https://example.com/3.m3u8")
+        
+        playlist.add(stream1)
+        playlist.add(stream2)
+        _ = playlist.start()
+        _ = playlist.next() // currentIndex = 1, current stream is stream2
+        
+        // Set new streams with stream2 at a different position
+        playlist.setStreams([stream3, stream2, stream1], preserveCurrent: true)
+        
+        // stream2 should still be current, now at index 1
+        XCTAssertEqual(playlist.currentIndex, 1)
+        XCTAssertEqual(playlist.currentStream?.title, "Test Video 2")
+    }
+    
+    func testSetStreamsPreserveCurrentNotFound() {
+        let stream1 = createTestStream(title: "Test Video 1", urlString: "https://example.com/1.m3u8")
+        let stream2 = createTestStream(title: "Test Video 2", urlString: "https://example.com/2.m3u8")
+        let stream3 = createTestStream(title: "Test Video 3", urlString: "https://example.com/3.m3u8")
+        
+        playlist.add(stream1)
+        playlist.add(stream2)
+        _ = playlist.start()
+        _ = playlist.next() // currentIndex = 1, current stream is stream2
+        
+        // Set new streams without stream2
+        playlist.setStreams([stream1, stream3], preserveCurrent: true)
+        
+        // stream2 not found, should reset to 0
+        XCTAssertEqual(playlist.currentIndex, 0)
+    }
+    
     // MARK: - CurrentStream Tests
     
     func testCurrentStreamBeforeStart() {

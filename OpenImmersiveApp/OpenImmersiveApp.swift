@@ -105,10 +105,14 @@ struct OpenImmersiveApp: App {
                     
                     // Apply format options to the next stream
                     let streamToPlay = appState.applyFormatOptions(to: nextStream)
-                    appState.selectedStream = nextStream
+                    appState.selectedStream = streamToPlay
                     
                     // Close current immersive space and reopen with next video
                     await dismissImmersiveSpace()
+                    
+                    // Check if loop was disabled during the transition (race condition prevention)
+                    guard appState.playlist.isLoopEnabled else { return }
+                    
                     // Result intentionally discarded: playlist loop continues regardless of success
                     _ = await openImmersiveSpace(value: streamToPlay)
                 }
