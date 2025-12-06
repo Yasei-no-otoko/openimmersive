@@ -109,7 +109,8 @@ struct OpenImmersiveApp: App {
                     
                     // Close current immersive space and reopen with next video
                     await dismissImmersiveSpace()
-                    let _ = await openImmersiveSpace(value: streamToPlay)
+                    // Result intentionally discarded: playlist loop continues regardless of success
+                    _ = await openImmersiveSpace(value: streamToPlay)
                 }
             }
             

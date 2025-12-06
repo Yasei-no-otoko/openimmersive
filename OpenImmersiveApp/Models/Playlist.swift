@@ -131,10 +131,4 @@ class Playlist {
         guard index >= 0 && index < streams.count else { return }
         currentIndex = index
     }
-    
-    /// Stops playlist playback.
-    func stop() {
-        // Keep the current index but don't auto-advance
-        // Caller should disable isLoopEnabled if they want to fully stop
-    }
 }
