@@ -19,6 +19,7 @@ OpenImmersive aims to provide this community with a more complete player, with p
 * Load a video from various sources: photo gallery, local files/documents, streaming playlist URL, or by dragging a video onto the window.
 * Control playback with Play/Pause buttons, +15/-15 second buttons, and an interactable scrubber in an auto-dismiss control panel.
 * Select resolution/bandwidth and audio track when streaming videos.
+* **Playlist with loop playback**: Build a playlist from loaded videos and play them in an infinite loop. Toggle loop mode on/off during playback from the control panel.
 * A timecode readout panel to illustrate injection of custom buttons & views in the ImmersivePlayer.
 * Play in AIVU mode with full spatial audio support!
 

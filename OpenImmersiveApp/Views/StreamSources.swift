@@ -18,6 +18,8 @@ struct StreamSources: View {
     @State private var areOptionsShowing: Bool = false
     /// The visibility of a tooltip with more information about MV-HEVC encoding.
     @State private var isTooltipShowing: Bool = false
+    /// The visibility of the playlist panel.
+    @State private var isPlaylistShowing: Bool = false
     
     var body: some View {
         @Bindable var appState = appState
@@ -56,10 +58,33 @@ struct StreamSources: View {
                     appState.selectedStream = stream
                 }
                 
+                Button {
+                    let stream = appState.selectedStream ?? StreamModel.sampleStream
+                    appState.playlist.add(stream)
+                } label: {
+                    Image(systemName: "plus.rectangle.on.rectangle")
+                }
+                .help("Add to playlist")
+                
+                Toggle(isOn: $isPlaylistShowing.animation(.interactiveSpring)) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "list.bullet")
+                        if appState.playlist.count > 0 {
+                            Text("\(appState.playlist.count)")
+                                .font(.caption)
+                        }
+                    }
+                }
+                .toggleStyle(.button)
+                .help("Show playlist")
+                
                 Toggle(isOn: $areOptionsShowing.animation(.interactiveSpring)) {
                     Image(systemName: "gearshape.fill")
                 }
                 .toggleStyle(.button)
+            }
+            .popover(isPresented: $isPlaylistShowing) {
+                PlaylistView(appState: appState, playPlaylist: playPlaylist)
             }
             .popover(isPresented: $areOptionsShowing) {
                 VStack {
@@ -130,6 +155,20 @@ struct StreamSources: View {
                 dismissWindow()
             }
         }
+    }
+    
+    /// Start playlist playback from the first video.
+    ///
+    /// This function closes the playlist popover and the main window when playback starts
+    /// (inherited from `playVideo()`).
+    func playPlaylist() {
+        guard let firstStream = appState.playlist.start() else {
+            return
+        }
+        appState.playlist.isLoopEnabled = true
+        let streamToPlay = appState.applyFormatOptions(to: firstStream)
+        appState.selectedStream = streamToPlay
+        playVideo(streamToPlay)
     }
     
 }

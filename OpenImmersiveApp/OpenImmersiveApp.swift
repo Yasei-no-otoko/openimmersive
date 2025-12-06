@@ -29,6 +29,8 @@ class OpenImmersiveAppState {
     var forceFov: Bool = false
     /// Whether to show the timecode readout view in the ImmersivePlayer.
     var showTimecodeReadout: Bool = false
+    /// The playlist for loop playback mode.
+    var playlist: Playlist = Playlist()
     
     /// Updates the input StreamModel's `projection` value according to the corresponding user options.
     /// - Parameters:
@@ -68,6 +70,7 @@ class OpenImmersiveAppState {
 @main
 struct OpenImmersiveApp: App {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @State var appState = OpenImmersiveAppState()
     
@@ -86,15 +89,42 @@ struct OpenImmersiveApp: App {
         ImmersiveSpace(for: StreamModel.self) { $model in
             let closeAction: CustomAction = {
                 Task {
+                    appState.playlist.isLoopEnabled = false
                     openWindow(id: "MainWindow")
                     await dismissImmersiveSpace()
+                }
+            }
+            
+            // Playlist loop action: advance to next video when current ends
+            let playbackEndedAction: CustomAction = {
+                Task { @MainActor in
+                    guard appState.playlist.isLoopEnabled,
+                          let nextStream = appState.playlist.next() else {
+                        return
+                    }
+                    
+                    // Apply format options to the next stream
+                    let streamToPlay = appState.applyFormatOptions(to: nextStream)
+                    appState.selectedStream = streamToPlay
+                    
+                    // Close current immersive space and reopen with next video
+                    await dismissImmersiveSpace()
+                    
+                    // Check if loop was disabled during the transition (race condition prevention)
+                    guard appState.playlist.isLoopEnabled else { return }
+                    
+                    // Result intentionally discarded: playlist loop continues regardless of success
+                    _ = await openImmersiveSpace(value: streamToPlay)
                 }
             }
             
             // customButton and customAttachment are provided for illustration purposes.
             // In order to inject multiple buttons, just nest them in a HStack.
             let customButton: CustomViewBuilder = { _ in
-                TimecodeToggle(isOn: $appState.showTimecodeReadout)
+                HStack {
+                    PlaylistLoopToggle(isOn: $appState.playlist.isLoopEnabled, playlist: appState.playlist)
+                    TimecodeToggle(isOn: $appState.showTimecodeReadout)
+                }
             }
             let customAttachment = CustomAttachment(
                 id: "TimecodeReadout",
@@ -109,6 +139,7 @@ struct OpenImmersiveApp: App {
             ImmersivePlayer(
                 selectedStream: model!,
                 closeAction: closeAction,
+                playbackEndedAction: playbackEndedAction,
                 customButtons: customButton,
                 customAttachments: [customAttachment]
             )
