@@ -315,18 +315,36 @@ final class PlaylistTests: XCTestCase {
         let stream1 = createTestStream(title: "Test Video 1", urlString: "https://example.com/1.m3u8")
         let stream2 = createTestStream(title: "Test Video 2", urlString: "https://example.com/2.m3u8")
         let stream3 = createTestStream(title: "Test Video 3", urlString: "https://example.com/3.m3u8")
-        
+
         playlist.add(stream1)
         playlist.add(stream2)
         playlist.add(stream3)
         _ = playlist.start()
         _ = playlist.next()
         _ = playlist.next() // currentIndex = 2
-        
+
         playlist.remove(at: 2) // Remove current item
-        
+
         // Current index should be adjusted
         XCTAssertTrue(playlist.currentIndex <= playlist.count - 1 || playlist.currentIndex == -1)
+    }
+
+    func testRemoveBeforeCurrentShiftsIndex() {
+        let stream1 = createTestStream(title: "Test Video 1", urlString: "https://example.com/1.m3u8")
+        let stream2 = createTestStream(title: "Test Video 2", urlString: "https://example.com/2.m3u8")
+        let stream3 = createTestStream(title: "Test Video 3", urlString: "https://example.com/3.m3u8")
+
+        playlist.add(stream1)
+        playlist.add(stream2)
+        playlist.add(stream3)
+        _ = playlist.start()
+        _ = playlist.next() // currentIndex = 1
+
+        playlist.remove(at: 0)
+
+        // The same logical item (previously index 1) should remain current
+        XCTAssertEqual(playlist.currentIndex, 0)
+        XCTAssertEqual(playlist.currentStream?.title, "Test Video 2")
     }
     
     // MARK: - Helper Methods

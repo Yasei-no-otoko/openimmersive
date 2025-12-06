@@ -61,10 +61,17 @@ class Playlist {
     func remove(at index: Int) {
         guard index >= 0 && index < streams.count else { return }
         streams.remove(at: index)
-        
-        // Adjust currentIndex if needed
-        if currentIndex >= streams.count {
-            currentIndex = max(-1, streams.count - 1)
+
+        // Adjust currentIndex to track the same logical item when possible
+        switch currentIndex {
+        case index:
+            // If the current item was removed, stay at the same position if another item exists
+            currentIndex = streams.isEmpty ? -1 : min(index, streams.count - 1)
+        case let value where value > index:
+            // Shift back when removing an item before the current one
+            currentIndex -= 1
+        default:
+            break
         }
     }
     
